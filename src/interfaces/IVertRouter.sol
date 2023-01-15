@@ -2,6 +2,14 @@ pragma solidity 0.8.0;
 
 interface IVertRouter {
     event UpdateFeeTaker(address feeTaker);
+    event AddStableToken(address token, bool added);
+    event Sell(
+        address indexed seller, 
+        address indexed tokenSold, 
+        address indexed stableCoin, 
+        uint amountTokenSold,
+        uint amountStableCoin
+    );
     function factory() external view returns (address);
     function WETH() external view returns (address);
     
