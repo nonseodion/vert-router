@@ -8,11 +8,12 @@ interface IVertRouter {
         address indexed tokenSold, 
         address indexed stableCoin, 
         uint amountTokenSold,
-        uint amountStableCoin
+        uint amountStableCoin,
+        address receiver
     );
     function factory() external view returns (address);
     function WETH() external view returns (address);
-    function stableTokens(address addr) external view returns (bool);
+    function stableTokens(address stableToken) external view returns (bool);
 
     function updateDustTaker(address dustTaker) external;
     function updateStableTokens(address stableToken) external;
