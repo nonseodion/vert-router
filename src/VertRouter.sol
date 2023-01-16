@@ -14,7 +14,12 @@ contract VertRouter is Ownable, IVertRouter {
     mapping (address => bool) stableTokens;
 
     modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'PancakeRouter: EXPIRED');
+        require(deadline >= block.timestamp, 'VertRouter: EXPIRED');
+        _;
+    }
+
+    modifier onlyStable(address stableToken) {
+        require(stableTokens[stableToken], "VertRouter: UNSUPPORTED_STABLETOKEN");
         _;
     }
 
@@ -26,10 +31,6 @@ contract VertRouter is Ownable, IVertRouter {
 
     receive() external payable {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
-    }
-
-    function rescue(address token) onlyOwner external {
-        IERC20(token).transfer(owner(), IERC20(token).balanceOf(address(this)));
     }
 
     function updateFeeTaker(address newFeeTaker) onlyOwner external{
@@ -54,8 +55,8 @@ contract VertRouter is Ownable, IVertRouter {
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external {
-        swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
+    ) external onlyStable(path[path.length-1]) {
+        _swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin);
     }
@@ -65,8 +66,8 @@ contract VertRouter is Ownable, IVertRouter {
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external payable {
-        swapExactETHForTokens(amountOutMin, path, address(this), deadline);
+    ) external payable onlyStable(path[path.length-1]) {
+        _swapExactETHForTokens(amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], msg.value, amountOutMin);
     }
@@ -77,8 +78,8 @@ contract VertRouter is Ownable, IVertRouter {
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external {
-        swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, address(this), deadline);
+    ) external onlyStable(path[path.length-1]) {
+        _swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin);
     }
@@ -97,7 +98,7 @@ contract VertRouter is Ownable, IVertRouter {
             );
         }
     }
-    function swapExactTokensForTokens(
+    function _swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
         address[] calldata path,
@@ -105,34 +106,34 @@ contract VertRouter is Ownable, IVertRouter {
         uint deadline
     )  internal ensure(deadline) returns (uint[] memory amounts) {
         amounts = PancakeLibrary.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amounts[amounts.length - 1] >= amountOutMin, 'VertRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]
         );
         _swap(amounts, path, to);
     }
 
-    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+    function _swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
         internal
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[0] == WETH, 'PancakeRouter: INVALID_PATH');
+        require(path[0] == WETH, 'VertRouter: INVALID_PATH');
         amounts = PancakeLibrary.getAmountsOut(factory, msg.value, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amounts[amounts.length - 1] >= amountOutMin, 'VertRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
 
-    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+    function _swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
         internal
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[path.length - 1] == WETH, 'PancakeRouter: INVALID_PATH');
+        require(path[path.length - 1] == WETH, 'VertRouter: INVALID_PATH');
         amounts = PancakeLibrary.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amounts[amounts.length - 1] >= amountOutMin, 'VertRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]
         );
@@ -161,7 +162,7 @@ contract VertRouter is Ownable, IVertRouter {
             pair.swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    function _swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
         address[] calldata path,
@@ -175,7 +176,7 @@ contract VertRouter is Ownable, IVertRouter {
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
             IERC20(path[path.length - 1]).balanceOf(to) - balanceBefore >= amountOutMin,
-            'PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+            'VertRouter: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
 
