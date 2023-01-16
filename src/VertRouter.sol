@@ -10,8 +10,8 @@ import 'openzeppelin-contracts/contracts/access/Ownable.sol';
 contract VertRouter is Ownable, IVertRouter {
     address public immutable override factory;
     address public immutable override WETH;
-    address feeTaker;
-    mapping (address => bool) stableTokens;
+    address dustTaker;
+    mapping (address => bool) public override stableTokens; 
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'VertRouter: EXPIRED');
@@ -23,22 +23,22 @@ contract VertRouter is Ownable, IVertRouter {
         _;
     }
 
-    constructor(address _factory, address _WETH, address _feeTaker) {
+    constructor(address _factory, address _WETH, address _dustTaker) {
         factory = _factory;
         WETH = _WETH;
-        feeTaker = _feeTaker;
+        dustTaker = _dustTaker;
     }
 
     receive() external payable {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
     }
 
-    function updateFeeTaker(address newFeeTaker) onlyOwner external{
-        feeTaker = newFeeTaker;
-        UpdateFeeTaker(newFeeTaker);
+    function updateDustTaker(address newDustTaker) onlyOwner external override{
+        dustTaker = newDustTaker;
+        UpdateDustTaker(newDustTaker); 
     }
 
-    function updateStableTokens(address stableToken) onlyOwner external {
+    function updateStableTokens(address stableToken) onlyOwner external override{
         bool add = !stableTokens[stableToken];
         stableTokens[stableToken] = add;
         AddStableToken(stableToken, add);
@@ -46,7 +46,10 @@ contract VertRouter is Ownable, IVertRouter {
 
     function _settle(address token, address receiver, uint settlement) internal{
         TransferHelper.safeTransfer(token, receiver, settlement);
-        TransferHelper.safeTransfer(token, feeTaker, IERC20(token).balanceOf(address(this)));
+        uint balance = IERC20(token).balanceOf(address(this));
+        if(balance > 0){
+            TransferHelper.safeTransfer(token, dustTaker, balance);
+        }
     }
 
     function sellToken(
@@ -55,18 +58,20 @@ contract VertRouter is Ownable, IVertRouter {
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external onlyStable(path[path.length-1]) {
+    ) external override onlyStable(path[path.length-1]) 
+    {
         _swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin);
     }
 
     function sellETH( 
-        uint amountOutMin, 
+        uint amountOutMin,
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external payable onlyStable(path[path.length-1]) {
+    ) external override payable onlyStable(path[path.length-1]) 
+    {
         _swapExactETHForTokens(amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], msg.value, amountOutMin);
@@ -78,7 +83,8 @@ contract VertRouter is Ownable, IVertRouter {
         address[] calldata path, 
         uint deadline,
         address receiver
-    ) external onlyStable(path[path.length-1]) {
+    ) external override onlyStable(path[path.length-1]) 
+    {
         _swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
         Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin);

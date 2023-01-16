@@ -1,7 +1,7 @@
 pragma solidity 0.8.0;
 
 interface IVertRouter {
-    event UpdateFeeTaker(address feeTaker);
+    event UpdateDustTaker(address dustTaker);
     event AddStableToken(address token, bool added);
     event Sell(
         address indexed seller, 
@@ -12,8 +12,30 @@ interface IVertRouter {
     );
     function factory() external view returns (address);
     function WETH() external view returns (address);
+    function stableTokens(address addr) external view returns (bool);
 
-    
+    function updateDustTaker(address dustTaker) external;
+    function updateStableTokens(address stableToken) external;
+    function sellToken(
+        uint amountIn, 
+        uint amountOutMin, 
+        address[] calldata path, 
+        uint deadline,
+        address receiver
+    ) external;
+    function sellETH( 
+        uint amountOutMin, 
+        address[] calldata path, 
+        uint deadline,
+        address receiver
+    ) external payable;
+    function sellTokenSupportingFeeOnTransfer(
+        uint amountIn, 
+        uint amountOutMin, 
+        address[] calldata path, 
+        uint deadline,
+        address receiver
+    ) external;
 
     function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
