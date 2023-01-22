@@ -2,7 +2,7 @@ pragma solidity 0.8.0;
 
 interface IVertRouter {
     event UpdateDustTaker(address dustTaker);
-    event AddStableToken(address token, bool added);
+    event AddStableCoin(address token, bool added);
     event Sell(
         address indexed seller, 
         address indexed tokenSold, 
@@ -13,10 +13,10 @@ interface IVertRouter {
     );
     function factory() external view returns (address);
     function WETH() external view returns (address);
-    function stableTokens(address stableToken) external view returns (bool);
+    function stableCoins(address stableCoin) external view returns (bool);
 
     function updateDustTaker(address dustTaker) external;
-    function updateStableTokens(address stableToken) external;
+    function updateStableCoins(address stableCoin) external;
     function sellToken(
         uint amountIn, 
         uint amountOutMin, 

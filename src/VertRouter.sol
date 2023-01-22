@@ -1,25 +1,25 @@
 pragma solidity 0.8.0;
 
+import 'openzeppelin-contracts/contracts/access/Ownable.sol'; 
 import './interfaces/IVertRouter.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 import './libraries/PancakeLibrary.sol';
 import './libraries/TransferHelper.sol';
-import 'openzeppelin-contracts/contracts/access/Ownable.sol'; 
 
 contract VertRouter is Ownable, IVertRouter {
     address public immutable override factory;
     address public immutable override WETH;
     address dustTaker;
-    mapping (address => bool) public override stableTokens; 
+    mapping (address => bool) public override stableCoins; 
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'VertRouter: EXPIRED');
         _;
     }
 
-    modifier onlyStable(address stableToken) {
-        require(stableTokens[stableToken], "VertRouter: UNSUPPORTED_STABLETOKEN");
+    modifier onlyStable(address stableCoin) {
+        require(stableCoins[stableCoin], "VertRouter: UNSUPPORTED_STABLeCoin");
         _;
     }
 
@@ -39,10 +39,10 @@ contract VertRouter is Ownable, IVertRouter {
         UpdateDustTaker(newDustTaker);
     }
 
-    function updateStableTokens(address stableToken) onlyOwner external override{
-        bool add = !stableTokens[stableToken];
-        stableTokens[stableToken] = add;
-        AddStableToken(stableToken, add);
+    function updateStableCoins(address stableCoin) onlyOwner external override{
+        bool add = !stableCoins[stableCoin];
+        stableCoins[stableCoin] = add;
+        AddStableCoin(stableCoin, add);
     }
 
     function _settle(address token, address receiver, uint settlement) internal{
@@ -169,6 +169,7 @@ contract VertRouter is Ownable, IVertRouter {
             pair.swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
+
     function _swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
