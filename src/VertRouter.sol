@@ -19,7 +19,7 @@ contract VertRouter is Ownable, IVertRouter {
     }
 
     modifier onlyStable(address stableCoin) {
-        require(stableCoins[stableCoin], "VertRouter: UNSUPPORTED_STABLeCoin");
+        require(stableCoins[stableCoin], "VertRouter: UNSUPPORTED_StableCoin");
         _;
     }
 
