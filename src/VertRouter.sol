@@ -36,13 +36,13 @@ contract VertRouter is Ownable, IVertRouter {
     function updateDustTaker(address newDustTaker) onlyOwner external override{
         require(newDustTaker != address(0));
         dustTaker = newDustTaker;
-        UpdateDustTaker(newDustTaker);
+        emit UpdateDustTaker(newDustTaker);
     }
 
     function updateStableCoins(address stableCoin) onlyOwner external override{
         bool add = !stableCoins[stableCoin];
         stableCoins[stableCoin] = add;
-        AddStableCoin(stableCoin, add);
+        emit AddStableCoin(stableCoin, add);
     }
 
     function _settle(address token, address receiver, uint settlement) internal{
@@ -63,7 +63,7 @@ contract VertRouter is Ownable, IVertRouter {
     {
         _swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
-        Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin, receiver);
+        emit Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin, receiver);
     }
 
     function sellETH( 
@@ -75,7 +75,7 @@ contract VertRouter is Ownable, IVertRouter {
     {
         _swapExactETHForTokens(amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
-        Sell(msg.sender, path[0], path[path.length-1], msg.value, amountOutMin, receiver);
+        emit Sell(msg.sender, path[0], path[path.length-1], msg.value, amountOutMin, receiver);
     }
 
     function sellTokenSupportingFeeOnTransfer(
@@ -88,7 +88,7 @@ contract VertRouter is Ownable, IVertRouter {
     {
         _swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, amountOutMin, path, address(this), deadline);
         _settle(path[path.length-1], receiver, amountOutMin);
-        Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin, receiver);
+        emit Sell(msg.sender, path[0], path[path.length-1], amountIn, amountOutMin, receiver);
     }
 
     // **** SWAP ****
