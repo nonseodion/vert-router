@@ -3,20 +3,22 @@
 ## Welcome
 Hi thanks for taking a look at the Vert Finance Smart Contracts. Vert Finance is a web-baseed decentralized application that let's you convert almost any cryptocurrency to fiat in your bank account. It's currently built to support only cryptocurrency to the Nigerian Naira conversions. Checkout this piece to find out more about Vert Finance.
 
-This is the Smart Contract Repo. You can also have a look at the frontend and backend repos.
+This is the Smart Contract Repo. You can also have a look at the [frontend](https://github.com/nonseodion/vert-ui) and [backend](https://github.com/nonseodion/vert-backend) repos.
 
 ### [Frontend](https://github.com/nonseodion/vert-ui)
 ### [Backend](https://github.com/nonseodion/vert-backend)
 
 ## Architecture
 
-The architecture above shows how the Vert Router sells a users token for stablecoin. Vert Router takes any token from the user and swaps it a stablecoin which it sends to a receiver specified by the user. The Router swaps it to a stablecoin to ensure the amount receive maintains its value. This ensures Vert Finance does not lose money to cryptocurrency price flunctuations. Any address can be a receiver but the frontend passes a fixed receiver. The stablecoin must be sent to this receiver before the fiat equivalent can be sent to a users bank account.
+![Frame 5](https://github.com/nonseodion/vert-router/assets/38128301/d6545623-4529-4939-9ba7-b0e2e9254368)
+
+The architecture above shows how the Vert Router contract sells a users token for stablecoin. Vert Router takes any token from the user and swaps it a stablecoin which it sends to a receiver specified by the user. The Router swaps it to a stablecoin to ensure the amount receive maintains its value. This ensures Vert Finance does not lose money to cryptocurrency price flunctuations. Any address can be a receiver but the frontend passes a fixed receiver. The stablecoin must be sent to this receiver before the fiat equivalent can be sent to a users bank account.
 
 ## Contracts
 There's only one contract.
 
-### Router
-The Router contract is a modification of Pancakeswap's Router contract. Its main function is to swap users tokens to a stablecoin and send to a receiver. 
+### Vert Router
+The Vert Router contract is a modification of Pancakeswap's Router contract. Its main function is to swap users tokens to a stablecoin and send to a receiver. 
 
 #### Functions
 | Function                                                                                                                       | Description                                                                                                                                 |
